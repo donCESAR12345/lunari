@@ -56,15 +56,8 @@ fn main() {
 
     let mut index: usize = 0;
 
-<<<<<<< HEAD
     for i in 0..AGES.len() - 1 {
-        if currentdays > AGES[i] && currentdays < AGES[i + 1] {
-=======
-    for i in 1..AGES.len() {
-        if currentdays > AGES[i - 1] && currentdays < AGES[i] {
->>>>>>> 88de893649c7a1a6c0fc5d7011e03c4650aaf62b
-            index = i;
-        }
+        if currentdays > AGES[i] && currentdays < AGES[i + 1] {}
     }
 
     let phase = PHASES[index];
