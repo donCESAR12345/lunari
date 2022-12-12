@@ -59,6 +59,7 @@ impl LunarPhases {
         if current_secs < 0.0 {
             current_secs += LUNAR_SECS;
         }
+        
         // Calculate days in current cycle (moon age)
         let currentdays = current_secs / LUNAR_SECS * LUNAR_DAYS;
 
@@ -70,7 +71,7 @@ impl LunarPhases {
             x if x < 15.76529385288 => Self::FullMoon,
             x if x < 21.14794077932 => Self::WaningGibbous,
             x if x < 28.53058770576 => Self::LastQuarterMoon,
-            _                            => Self::WaningCrescent
+            _                       => Self::WaningCrescent
         }
     }
 }
