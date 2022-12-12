@@ -1,0 +1,76 @@
+* General anotatio
+
+** Dependencis
+
++ JulDay (1100 JULDAY)
+
+** Formulae
+
++ $$ PM = Moon's horizontal parallax (radians) $$
++ $$ RM = radius of Moon = 2.72446e-1 * PM $$
++ $$ RN = \frac{4.65242e-3}{RR} (radians) $$
++ $$ RR = Earth-Sun distance (AU) $$
++ $$ PS = parallax of Sun $$
++ $$ RP = ((PM * 0.99834) + RN + PS) * 1.02 $$
++ $$ RU = ((PM * 0.99834) - RN + PS) * 1.02 $$
++ $$ R1 = radius of Sum (RN), radius of penumbra (RP), or radius of
+  umbra (RU) $$
++ $$ ZP = \frac{Z^3}{Z^2 + S^2} $$
++ $$ ZQ = ZP - (ZP^2 - ((Z^2 - (R1 + RM)^2) * \frac{ZP}{Z}))^0.5 $$
++ $$ MG = \frac{RM + R1 - P}{x * R1} $$ for solar eclipse with $$ R1 =
+  RN $$
++ $$ MG = \frac{RM + R1 - P}{x * RM} $$ for lunar eclipse with $$ R1 =
+  RP $$ for penumbral eclipse and $$ R1 = RU $$ for umbral eclipse.
++ $$ \frac{p * s}{\sqrt{z2 + s2}}
+** About the program
+
+*** Definitions
+
++ *Magnitude*: The magnitude is defined as the fraction of the
+  deameter of the disk (Sun, penumbra, or umbra) covered by the Moon
+  at maximum eclipse, and in the case of a lunar eclipse is the
+  penumbral magnitude if there is no umbral phase.
+
+*** INPUTs of the subtoutine
++ Date or Day (DY), Month (MN), Year (YR).
++ Observer's position on the Earth or geographical longitude (GL),
+  geographical latitude (GP) and height above sea-level (HT).
++ Type of eclipse to search (ET$), 'L' for a lunar eclipse and 'S' for
+  a solr eclipse.
+
+*** OUTPUT
+On calling the routine, it always responds with one of the messages
+'Solar eclipse certain', 'Lunar eclipse certain', 'Solar eclipse
+possible', 'Lunar eclipse possible', or 'No eclipse' referring to the
+instant of new or full moon tested. This date is returned via the
+variables D0, MN, YR, and in string format via the vairable DT$. Other
+messages put out by the routine are 'but does not occur' when
+circumstances contrive to prevent an eclipse from occuring despite the
+Moon being within 19.5 degrees of a node, and 'but is not seen from
+this locasion' in case of a solar eclipse which happens elsewhere on
+the earth.
+
+*** Error
+
+Error conditions are reported via the error flags ER(8), and
+ER(9). Both are set to 0 on entering the routine (line 7000). ER(8) is
+set to 1 if no eclipse occurs at all, and is set to 2 if solar eclipse
+occurs somewhere on the Earth but not at not the given geographical
+location. ER(9) is set to 1 if there is no umbral phase is a lunar
+eclipse, and to 2 if there is no total phase.
+
+*** Description and procedure.
+
+The reoutine first finds the times of new and full moon nearest to the
+fiven date and then test to see whether an eclipse is possible. If it
+is, then the Universal Time (UT) of maximum eclipse is calculated
+(Z1), together with the time of the first contact (Z6), and the last
+contact (Z7) and the eclipse magnitude (MG). If the eclipse is lunar,
+the start of the umbral phase (Z8), the end of the umbral phase (Z9),
+the start of the total phase (ZC), and the end of the total phase
+(ZB), are also calculated as appropriate.
+
+* Resources
+
++ Astronomy with your personal computer (elipcse 7000, sunrs 3600,
+  moonrs 6600)
