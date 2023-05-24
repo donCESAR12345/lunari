@@ -11,8 +11,8 @@ Given a date converts it to the number of day since 1900 Junary 0.5
 returned by DJ.
 
 *** jeje (?)
-+ To conver DJ to JD, simply ad 2415020. This routine works for all
-  dates isnce 1st Junary 4713 BC (if the machine has sufficient precision).
++ To conver DJ to JD, simply add 2415020. This routine works for all
+  dates since 1st Junary 4713 BC (if the machine has sufficient precision).
 + Astronomers, on the other hand, need to count the years logically,
   taking the year before 1 AD as 0, the year before that as -1
   etc. *Input year BC simply with a negative sign* if you attempt to
@@ -21,7 +21,7 @@ returned by DJ.
   displayed if you attempt to input any date between 5th and 14th
   October 1582 inclusive. In both cases, the error flalg ER(1) is set
   to 1 to indicate the calling program that and error has
-  occurred. Date before 19000 Junary 0.5 return nagative values of DJ.
+  occurred. Date before 1900 Junary 0.5 return nagative values of DJ.
 + Execution of the subroutine JULDAY is controlled by the flat
   FL(1). When it is called for the first time, or whenever it is
   required to calculate DJ for  new date, FL(1) must be set to 0. In
@@ -48,28 +48,47 @@ returned by DJ.
 #+begin_src python
   from math import ceil, trunc
 
-  def julday(dia, mes, año, hora) -> Optional[int]:
-      if año == 0:
-          return None
+    def passYearToDays(año):
+        if año == 0:
+            return None
+        y1 = año + 1 if año < 1 else año
+        NUMBER_OF_DAYS_IN_ONE_YEAR = 365 + 1/4 # 1461 / 4
+        APROS_NUMBER_OF_DAYS_IN_Y1_YEARS = NUMBER_OF_DAYS_IN_ONE_YEAR * y1
+        NUMBER_OF_DAYS_IN_Y1_YEARS = (
+            trunc(APROS_NUMBER_OF_DAYS_IN_Y1_YEARS-0.75) - 694025 if y1 < 0 else
+            ceil(APROS_NUMBER_OF_DAYS_IN_Y1_YEARS)
+        )
+        return NUMBER_OF_DAYS_IN_Y1_YEARS
 
-      y1 = año + 1 if y1 < 1 else año
-      m1 = mes
-      if mes < 3:
-          m1 += 12
-          y1 -= 1
+    def passMonthsToDays(mes):
+        m1 = mes
+        NUMBER_OF_DAY_BY_MOUNTH = 306_001 / 10_000
+        return ceil(NUMBER_OF_DAY_BY_MOUNTH * (m1 + 1))
 
-      oct_15_1582 = ( 15, 10, 1582 )
-      # A = ceil(año / 100)
-      B = (
-          2 - ceil(año / 100 ) + ceil( ceil(año / 100 ) / 4)
-          if ( dia, mes, año ) == oct_15_1582 else 0
-          )
-      C = (
-          trunc((365.25*y1)-0.75) - 694025 if y1 < 0 else
-          ceil(365.25*y1)
-          )
-      D = ceil(30.6001 * (m1 + 1))
-      return b + c + d + dia - 0.5
+    def julday(dia, mes, año):
+
+        years_to_days = passYearToDays(año)
+
+        if years_to_days is None:
+            return None
+
+        NUMBER_OF_DAYS_IN_ONE_YEAR = 365 + 1/4 # 1461 / 4
+        NUMBER_OF_DAY_BY_MOUNTH = 306_001 / 10_000
+
+        months_to_days = passMonthsToDays(mes)
+
+        if mes < 3:
+            m1 += 12 * NUMBER_OF_DAY_BY_MOUNTH
+            year_to_days -= NUMBER_OF_DAYS_IN_ONE_YEAR
+
+        oct_15_1582 = ( 15, 10, 1582 )
+        centenials_years = ceil(año / 100)
+        bin_days = (
+            2 - A + ceil( A / 4)
+            if ( dia, mes, año ) >= oct_15_1582 else 0
+        )
+
+        return bin_days/ + months_to_days + year_to_days + dia - 0.5
 
 #+end_src
 
