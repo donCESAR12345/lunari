@@ -1,0 +1,148 @@
+#+begin_src python
+  def calculate_mean_anomaly(jd):
+    """Calculates the mean anomaly of the Moon.
+
+    Args:
+      jd: The Julian day.
+
+    Returns:
+      The mean anomaly of the Moon.
+    """
+    return 2 * np.pi * (jd - 2451545.0) / 365.25
+
+
+  def calculate_eccentric_anomaly(ma):
+    """Calculates the eccentric anomaly of the Moon.
+
+    Args:
+      ma: The mean anomaly of the Moon.
+
+    Returns:
+      The eccentric anomaly of the Moon.
+    """
+    return (
+      ma + 1.274 * np.sin(ma) + 0.005 * np.sin(2 * ma) -
+      0.0001 * np.sin(3 * ma)
+    )
+
+
+  def calculate_true_longitude(ea):
+    """Calculates the true longitude of the Moon.
+
+    Args:
+      ea: The eccentric anomaly of the Moon.
+
+    Returns:
+      The true longitude of the Moon.
+    """
+    return 2 * np.pi * (ea / 360.0)
+
+
+  def calculate_ecliptic_latitude(ea):
+    """Calculates the ecliptic latitude of the Moon.
+
+    Args:
+      ea: The eccentric anomaly of the Moon.
+
+    Returns:
+      The ecliptic latitude of the Moon.
+    """
+    return np.arcsin(0.5 * (1 + np.cos(ea)))
+
+
+  def calculate_horizontal_parallax(ma):
+    """Calculates the horizontal parallax of the Moon.
+
+    Args:
+      ma: The mean anomaly of the Moon.
+
+    Returns:
+      The horizontal parallax of the Moon.
+    """
+    return 0.950309 * (1 + 0.0549 * np.cos(ma) - 0.0012 * np.cos(2 * ma))
+
+
+  def calculate_moon_position(jd):
+    """Calculates the true geocentric ecliptic longitude, latitude and
+    horizontal parallax of the Moon at a given instant.
+
+    Args:
+      jd: The Julian day.
+
+    Returns:
+      A tuple of the true geocentric ecliptic longitude, latitude and
+    horizontal parallax of the Moon.
+    """
+    # Calculate the mean anomaly of the Moon.
+    ma = calculate_mean_anomaly(jd)
+
+    # Calculate the eccentric anomaly of the Moon.
+    ea = calculate_eccentric_anomaly(ma)
+
+    # Calculate the true longitude of the Moon.
+    lon = calculate_true_longitude(ea)
+
+    # Calculate the ecliptic latitude of the Moon.
+    lat = calculate_ecliptic_latitude(ea)
+
+    # Calculate the horizontal parallax of the Moon.
+    par = calculate_horizontal_parallax(ma)
+
+    return lon, lat, par
+#+end_src
+#+begin_src rust
+  fn calculate_moon_position(jd: f64) -> (f64, f64, f64) {
+      // Calculate the mean anomaly of the Moon.
+
+      let ma = 2 * std::f64::consts::PI * (jd - 2451545.0) / 365.25;
+
+      // Calculate the eccentric anomaly of the Moon.
+
+      let ea = {
+          ma + 1.274 * std::sin(ma) +
+              0.005 * std::sin(2 * ma) -
+              0.0001 * std::sin(3 * ma) };
+
+      // Calculate the true longitude of the Moon.
+
+      let lon = 2 * std::f64::consts::PI * (ea / 360.0);
+
+      // Calculate the ecliptic latitude of the Moon.
+
+      let lat = std::asin(0.5 * (1 + std::cos(ea)));
+
+      // Calculate the horizontal parallax of the Moon.
+
+      let par = 0.950309 * (1 +
+                            0.0549 * std::cos(ma) -
+                            0.0012 * std::cos(2 * ma));
+
+      (lon, lat, par)
+  }
+
+  /// Converts the number of Julian days since 1900 January 0.5 into the calendar date.
+  fn calday(jd: f64) -> (i32, i32, i32, i32, i32, i32) {
+      // Calculate the day of the year.
+      let doy = jd - 2451545.0;
+
+      // Calculate the year.
+      let year = (doy / 365.25) + 1900;
+
+      // Calculate the month.
+      let month = ((doy - (year - 1) * 365.25) / 30.416667) + 1;
+
+      // Calculate the day of the month.
+      let day = (doy - (year - 1) * 365.25 - (month - 1) * 30.416667);
+
+      // Calculate the hour.
+      let hour = ((jd - doy) * 24) as i32;
+
+      // Calculate the minute.
+      let minute = ((jd - doy - hour * 24) * 60) as i32;
+
+      // Calculate the second.
+      let second = ((jd - doy - hour * 24 - minute * 60) * 60) as i32;
+
+      (year, month, day, hour, minute, second)
+  }
+#+end_src
