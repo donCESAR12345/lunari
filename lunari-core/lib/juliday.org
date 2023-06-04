@@ -1,0 +1,154 @@
+* 1100 JULDAY
+
+** About the program
+
+*** INPUTs
++ Date or Day (DY) (day number, including times as a fraction of the
+  day if appropriate), Month (MN) (month number), Year (YR).
+
+*** OUTPU
+Given a date converts it to the number of day since 1900 Junary 0.5
+returned by DJ.
+
+*** jeje (?)
++ To conver DJ to JD, simply add 2415020. This routine works for all
+  dates since 1st Junary 4713 BC (if the machine has sufficient precision).
++ Astronomers, on the other hand, need to count the years logically,
+  taking the year before 1 AD as 0, the year before that as -1
+  etc. *Input year BC simply with a negative sign* if you attempt to
+  input YR=0 the routine responds with the message "** no year zero
+  **", followed by "*** impossble date". The latter message is also
+  displayed if you attempt to input any date between 5th and 14th
+  October 1582 inclusive. In both cases, the error flalg ER(1) is set
+  to 1 to indicate the calling program that and error has
+  occurred. Date before 1900 Junary 0.5 return nagative values of DJ.
++ Execution of the subroutine JULDAY is controlled by the flat
+  FL(1). When it is called for the first time, or whenever it is
+  required to calculate DJ for  new date, FL(1) must be set to 0. In
+  line 1110 the flag is set to 1. If, subsequently, the routine is
+  called again without the flag having veen reset to 0, DJ is /not/
+  recalculated but control is immediately returned to teh calling
+  program.
+
+** Formulae
+
++ $$ DJ = B + C + D + DY - 0.5 days $$
++ If date is before 15th Oct 1582 B = 0
++ If date is equal to, or after 15th October 1582
+  B = 2 - A  + INT(A/4)
+  A = INT(Y1/100)
++ IF Y1 is negative: C = FNI((365.25 * Y1) -  0.75) - 694025.
++ IF Y1 is zero or positive: C = INT(365.25 * Y1) - 694025.
++ All dates:
+  D = INT(30.6001 * (M1 + 1))
++ Y1 = YR < 1 ? YR + 1 : YR
++ If MN = 1 or 2: Y1 = Y1 - 1, M1 = MN + 12
++ IF MN is 3 or more: M1 = MN
+
+#+begin_src python
+  from math import ceil, trunc
+
+    def passYearToDays(año):
+        if año == 0:
+            return None
+        y1 = año + 1 if año < 1 else año
+        NUMBER_OF_DAYS_IN_ONE_YEAR = 365 + 1/4 # 1461 / 4
+        APROS_NUMBER_OF_DAYS_IN_Y1_YEARS = NUMBER_OF_DAYS_IN_ONE_YEAR * y1
+        NUMBER_OF_DAYS_IN_Y1_YEARS = (
+            trunc(APROS_NUMBER_OF_DAYS_IN_Y1_YEARS-0.75) - 694025 if y1 < 0 else
+            ceil(APROS_NUMBER_OF_DAYS_IN_Y1_YEARS)
+        )
+        return NUMBER_OF_DAYS_IN_Y1_YEARS
+
+    def passMonthsToDays(mes):
+        m1 = mes
+        NUMBER_OF_DAY_BY_MOUNTH = 306_001 / 10_000
+        return ceil(NUMBER_OF_DAY_BY_MOUNTH * (m1 + 1))
+
+    def julday(dia, mes, año):
+
+        years_to_days = passYearToDays(año)
+
+        if years_to_days is None:
+            return None
+
+        NUMBER_OF_DAYS_IN_ONE_YEAR = 365 + 1/4 # 1461 / 4
+        NUMBER_OF_DAY_BY_MOUNTH = 306_001 / 10_000
+
+        months_to_days = passMonthsToDays(mes)
+
+        if mes < 3:
+            m1 += 12 * NUMBER_OF_DAY_BY_MOUNTH
+            year_to_days -= NUMBER_OF_DAYS_IN_ONE_YEAR
+
+        oct_15_1582 = ( 15, 10, 1582 )
+        centenials_years = ceil(año / 100)
+        bin_days = (
+            2 - A + ceil( A / 4)
+            if ( dia, mes, año ) >= oct_15_1582 else 0
+        )
+
+        return bin_days/ + months_to_days + year_to_days + dia - 0.5
+
+#+end_src
+
+** code
+
+#+begin_src ruby
+  REM
+  REM Subroutine JULDAY
+  REM
+
+  IF FL(1) = 1 THEN RETURN # Has this date alredy been converted?
+  IF YR == 0 THEN PRINT "** no year zero **" : GOTO 1150 # Check that year is legal
+  M1 = MN : Y1=YR : FL(1) = 1 : B = 0 : ER(1) = 0
+  IF Y1 < 1 THEN Y1 = Y1 + 1 # No year 0
+  IF MN < 3 THEN M1 = MN+12 : Y1=Y1-1
+  IF Y1 > 1582 THEN GOTO 1160 # Deal with change to gregorian calendar
+  IF Y1 < 1582 THEN GOTO 1165
+  IF Y1 = 1582 AND MN < 10 THEN GOTO 1165
+  IF Y1 = 1582 AND MN = 10 AND DY < 5 THEN GOTO 1165
+  IF MN > 10 OR DY >= 15 THEN GOTO 1160
+  ER(1) = 1 : FL(1) = 0 # 1150
+  PRINT "*** impossible date" : RETURN
+
+  A = INT(Y1/100) : B = 2-A+INT(A/4) # 1160 # calculate A,B,C,D
+  C = INT(365.25 * Y1) - 694025 # 1165
+  IF Y1 < 0 THEN C = FNI((365.25 * Y1) - 0.75) - 694025
+  D = INT(30.6001 * (M1 + 1)) : DJ = B + C + D + DY - 0.5
+  RETURN
+#+end_src
+
+
+
+** datails of JULDAY
+
+Converts the date DY, MN, YT in DJ (days), the number of julian days
+elapsed since 1900 JUNARY 0.5 (= 1899 December 31.5). Count years
+'before christ' as negative, with no year 0, thus: BC - 3, -2, -1, 1,
+2,3 AD.
+If FL(1) = 0 on call, execution of the subroutine proceeds
+normally. If FL(1) = 1, on call, then control retuns immediately to
+the calling program without calculation of a new DJ. FL(1) is set to 1
+oon each new calculation. ER(1) is set to 0 on return from the
+subroutine if no error has occured. If date is impossible (see text)
+the a message is displayed, ER(1) is set to 1, and the value of DJ is
+no altered.
+
+** General Notes
++ In fact, astronomers generally adopt the instant of midday as
+  measured at Greenwich on 1st January of the tyear 4713 BC as their
+  starting point, or fundamental apoch. Any given calendar date is
+  then converted into the number of days elapsed since then and called
+  the /Julian day number/, or /Julian date/.
++ Subroutine JULDAY use the basic function ~INT(X)~ to find the
+  integer part of the number represented by X. Unfortunately, some
+  forms of BASIC use ~INT~ to represent the least-integer function
+  while other use it to represent the truncated-integer value. Thus
+  ~INT(-32.4)~ would be returned as -33 in the former case and as -32
+  in the latter. Both return ~INT~ of positive number identically. IN
+  order to overcome this difficulty, JULDAY use tis own integer
+  function ~FNI(W)~, which returns the truncated integer part of
+  W. this muste be defined in the handling program.
++ ~INT()~ can return either the least-integer or the truncated-integer
+  value. ~FNI()~ must return the truncated-integer value.
